@@ -1,0 +1,5 @@
+begin
+read N
+pushv N
+pushi 2
+mod
