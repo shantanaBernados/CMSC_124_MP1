@@ -2,7 +2,6 @@ import sys
 from PyQt4 import QtCore, QtGui
 import assemberui
 from assember import AssemBER
-import time
 
 
 class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
@@ -13,12 +12,9 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
 
     def __del__(self):
-        # Restore sys.stdout
         sys.stdout = sys.__stdout__
 
     def normalOutputWritten(self, text):
-        """Append text to the QTextEdit."""
-        # Maybe QTextEdit.append() works as well, but this is how I do it:
         cursor = self.consoletext.textCursor()
         cursor.movePosition(QtGui.QTextCursor.End)
         cursor.insertText(text)
@@ -31,7 +27,6 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
         code = code.encode('utf_8')
         code = code.split('\n')
         self.converterThread = ConverterThread(self, code)
-        # self.converterThread.mlaSignal.connect(QtGui.QMessageBox.information)
         self.converterThread.mlaSignal.connect(self.mlecode.setText)
         self.converterThread.start()
 
