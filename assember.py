@@ -1,91 +1,198 @@
-# -*- coding: utf-8 -*-
+import vars
+import sys
 
-# Form implementation generated from reading ui file 'assemBer.ui'
-#
-# Created: Sat Apr 18 18:32:55 2015
-#      by: PyQt4 UI code generator 4.10.4
-#
-# WARNING! All changes made in this file will be lost!
+asmfile = 'input.asm'
 
-from PyQt4 import QtCore, QtGui
+with open(asmfile, 'r') as input_file:
+	codes = [i.strip() for i in input_file.readlines()]
 
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
+class AssemBER(object):
+	def convert(self, codes):
+		mla = []
+		labels = {}
 
-try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
+		for i in xrange(0, len(codes)):
+			instruction = codes[i]
 
-class Ui_AssemBER(object):
-    def setupUi(self, AssemBER):
-        AssemBER.setObjectName(_fromUtf8("AssemBER"))
-        AssemBER.resize(831, 579)
-        self.centralwidget = QtGui.QWidget(AssemBER)
-        self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
-        self.textEdit = QtGui.QTextEdit(self.centralwidget)
-        self.textEdit.setGeometry(QtCore.QRect(20, 430, 791, 78))
-        self.textEdit.setObjectName(_fromUtf8("textEdit"))
-        self.label_2 = QtGui.QLabel(self.centralwidget)
-        self.label_2.setGeometry(QtCore.QRect(20, 410, 66, 17))
-        self.label_2.setObjectName(_fromUtf8("label_2"))
-        self.widget = QtGui.QWidget(self.centralwidget)
-        self.widget.setGeometry(QtCore.QRect(9, 10, 801, 391))
-        self.widget.setObjectName(_fromUtf8("widget"))
-        self.gridLayout = QtGui.QGridLayout(self.widget)
-        self.gridLayout.setMargin(0)
-        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.label = QtGui.QLabel(self.widget)
-        self.label.setObjectName(_fromUtf8("label"))
-        self.gridLayout.addWidget(self.label, 0, 1, 1, 1)
-        self.convertasm = QtGui.QPushButton(self.widget)
-        self.convertasm.setObjectName(_fromUtf8("convertasm"))
-        self.gridLayout.addWidget(self.convertasm, 2, 0, 1, 1)
-        self.executemle = QtGui.QPushButton(self.widget)
-        self.executemle.setObjectName(_fromUtf8("executemle"))
-        self.gridLayout.addWidget(self.executemle, 2, 1, 1, 1)
-        self.asmlabel = QtGui.QLabel(self.widget)
-        self.asmlabel.setObjectName(_fromUtf8("asmlabel"))
-        self.gridLayout.addWidget(self.asmlabel, 0, 0, 1, 1)
-        self.asmtextedit = QtGui.QTextEdit(self.widget)
-        self.asmtextedit.setObjectName(_fromUtf8("asmtextedit"))
-        self.gridLayout.addWidget(self.asmtextedit, 1, 0, 1, 1)
-        self.mlecode = QtGui.QTextEdit(self.widget)
-        self.mlecode.setObjectName(_fromUtf8("mlecode"))
-        self.gridLayout.addWidget(self.mlecode, 1, 1, 1, 1)
-        AssemBER.setCentralWidget(self.centralwidget)
-        self.menubar = QtGui.QMenuBar(AssemBER)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 831, 25))
-        self.menubar.setObjectName(_fromUtf8("menubar"))
-        AssemBER.setMenuBar(self.menubar)
-        self.statusbar = QtGui.QStatusBar(AssemBER)
-        self.statusbar.setObjectName(_fromUtf8("statusbar"))
-        AssemBER.setStatusBar(self.statusbar)
+			if instruction.endswith(':'):
+				labels[instruction] = str(i + 1)
 
-        self.retranslateUi(AssemBER)
-        QtCore.QMetaObject.connectSlotsByName(AssemBER)
+		for code in codes:
+			arr = code.split(' ')
+			instruction = arr[0]
 
-    def retranslateUi(self, AssemBER):
-        AssemBER.setWindowTitle(_translate("AssemBER", "AssemBER", None))
-        self.label_2.setText(_translate("AssemBER", "Console", None))
-        self.label.setText(_translate("AssemBER", "Machine Code", None))
-        self.convertasm.setText(_translate("AssemBER", "Convert", None))
-        self.executemle.setText(_translate("AssemBER", "Execute", None))
-        self.asmlabel.setText(_translate("AssemBER", "Assembly Code", None))
+			if instruction in vars.symbol_reversed:
+				mc = vars.symbol_reversed[instruction]
+				if mc[0] == '0':
+					mc += '00'
+					mla.append(mc)
+				else:
+					if mc == '11':
+						if int(arr[1]) < 10:
+							mc += '0' + arr[1]
+						else:
+							mc += arr[1]
+						mla.append(mc)
+					elif mc in ['14', '15', '16', '17']:
+						arr[1] += ":"
+						if arr[1] in labels:
+							if int(labels[arr[1]]) < 10:
+								labels[arr[1]] = '0' + labels[arr[1]]
+
+							mla.append(mc + str(labels[arr[1]]))
+						else:
+							print "Label not found"
+							return
+					else:
+						address = self.append_variable_to_stack(arr[1])
+						if not address:
+							print "Memory full."
+						else:
+							mc += str(address)
+							mla.append(mc)
+			elif instruction.endswith(':'):
+				if int(labels[instruction]) < 10: 
+					labels[instruction] = '0' + labels[instruction]
+
+				mla.append('06' + labels[instruction])
+			else:
+				print instruction + " is not supported."
+				return
 
 
-if __name__ == "__main__":
-    import sys
-    app = QtGui.QApplication(sys.argv)
-    AssemBER = QtGui.QMainWindow()
-    ui = Ui_AssemBER()
-    ui.setupUi(AssemBER)
-    AssemBER.show()
-    sys.exit(app.exec_())
 
+		return mla
+
+	def append_variable_to_stack(self, variable):
+		for i in xrange(30,39):
+			if not vars.memory_stack[i] or vars.memory_stack[i] == variable:
+				vars.memory_stack[i] = variable
+				return i
+
+		return False
+
+	def write_mla_to_file(self, mla):
+		with open('input.mla', 'w+') as output_file:
+			for line in mla:
+				output_file.write(line+'\n')
+
+	def execute(self, mla_code):
+		memory_stack = [None for i in xrange(40)]
+		stack_register = []
+
+		for i in range(0, len(mla_code)):
+			memory_stack[i] = mla_code[i]
+
+		i = 0
+		while i < 30:
+			if not memory_stack[i]:
+				break
+
+			instruction = memory_stack[i][0:2]
+			param = int(memory_stack[i][2:4])
+
+			print instruction, param
+			if vars.symbol[instruction] == "read":
+				val = input("Input a value for N: ")
+				memory_stack[param] = val
+			elif vars.symbol[instruction] == "mod":
+				if len(stack_register) < 2:
+					print "Null Operand Error."
+					return
+
+				a = stack_register.pop()
+				b = stack_register.pop()
+
+				stack_register.append(b % a)
+			elif vars.symbol[instruction] == "add":
+				if len(stack_register) < 2:
+					print "Null Operand Error."
+					return
+
+				a = stack_register.pop()
+				b = stack_register.pop()
+
+				if (a+b) > 99:
+					print "Overflow Error."
+					return
+
+				stack_register.append(b + a)
+			elif vars.symbol[instruction] == "sub":
+				if len(stack_register) < 2:
+					print "Null Operand Error."
+					return
+
+				a = stack_register.pop()
+				b = stack_register.pop()
+
+				if (b - a) < 0:
+					print "Overflow Error."
+					return
+
+				stack_register.append(b - a)
+			elif vars.symbol[instruction] == "cmp":
+				if len(stack_register) < 2:
+					print "Null Operand Error."
+					return
+
+				a = stack_register.pop()
+				b = stack_register.pop()
+
+				stack_register.append(a == b)
+			elif vars.symbol[instruction] == "pushi":
+				if len(stack_register) == 5:
+					print "Stack Overflow Error."
+					return
+
+				stack_register.append(param)
+			elif vars.symbol[instruction] == "pushv":
+				if len(stack_register) == 5:
+					print "Stack Overflow Error."
+					return
+
+				stack_register.append(memory_stack[param])
+			elif vars.symbol[instruction] == "pop":
+				if not stack_register:
+					print "Empty Stack Error."
+					return
+
+				memory_stack[param] = stack_register.pop()
+			elif vars.symbol[instruction] == "jmp":
+				i = param - 2
+			elif vars.symbol[instruction] == "jl":
+				if len(stack_register) < 2:
+					print "Null Compare Error."
+					return
+				elif stack_register[-1] < stack_register[-2]:
+					i = param - 2
+			elif vars.symbol[instruction] == "jg":
+				if len(stack_register) < 2:
+					print "Null Compare Error."
+					return
+				elif stack_register[-1] > stack_register[-2]:
+					i = param - 2
+			elif vars.symbol[instruction] == "jeq":
+				if len(stack_register) < 2:
+					print "Null Compare Error."
+					return
+				elif stack_register[-1] == stack_register[-2]:
+					i = param - 2
+			elif vars.symbol[instruction] == "disp":
+				print memory_stack[param]
+			elif vars.symbol[instruction] == "end":
+				break
+			
+			i += 1
+
+			print stack_register
+
+
+		print memory_stack
+		print stack_register
+
+		
+
+assembler = AssemBER()
+mla_code = AssemBER().convert(codes)
+assembler.write_mla_to_file(mla_code)
+assembler.execute(mla_code)

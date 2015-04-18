@@ -16,6 +16,9 @@ class AssemberWindow(QtGui.QMainWindow, assember.Ui_AssemBER):
         print code
         self.mlecode.setText(code)
 
+
+class ConverterThread
+
 app = QtGui.QApplication(sys.argv)
 form = AssemberWindow()
 form.show()
