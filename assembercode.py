@@ -1,14 +1,13 @@
 import sys
 from PyQt4 import QtCore, QtGui
+import assemberui
+from assember import AssemBER
 
-import assember
 
-
-class AssemberWindow(QtGui.QMainWindow, assember.Ui_AssemBER):
+class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
     def __init__(self, parent=None):
         super(AssemberWindow, self).__init__(parent)
         self.setupUi(self)
-
         self.connect(self.convertasm, QtCore.SIGNAL("clicked()"), self.convertasmcode)
 
     def convertasmcode(self):
@@ -17,7 +16,8 @@ class AssemberWindow(QtGui.QMainWindow, assember.Ui_AssemBER):
         self.mlecode.setText(code)
 
 
-class ConverterThread
+class ConverterThread():
+	pass
 
 app = QtGui.QApplication(sys.argv)
 form = AssemberWindow()

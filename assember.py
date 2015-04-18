@@ -1,11 +1,14 @@
-import vars
 import sys
+import vars
+from Singleton import Singleton
+
 
 asmfile = 'input.asm'
 
 with open(asmfile, 'r') as input_file:
 	codes = [i.strip() for i in input_file.readlines()]
 
+@Singleton
 class AssemBER(object):
 	def convert(self, codes):
 		mla = []
@@ -192,7 +195,7 @@ class AssemBER(object):
 
 		
 
-assembler = AssemBER()
-mla_code = AssemBER().convert(codes)
+assembler = AssemBER.Instance()
+mla_code = AssemBER.Instance().convert(codes)
 assembler.write_mla_to_file(mla_code)
 assembler.execute(mla_code)
