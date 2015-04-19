@@ -1,4 +1,5 @@
 import sys
+import os
 from PyQt4 import QtCore, QtGui
 import assemberui
 from assember import AssemBER
@@ -11,6 +12,7 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
         self.setupUi(self)
         self.convertasm.clicked.connect(self.convertasmcode)
         self.executemle.clicked.connect(self.executemlacode)
+        self.asmtextedit.installEventFilter(QAsmEditDropHandler(self))
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
 
     def __del__(self):
@@ -48,13 +50,49 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
             print "empty"
 
     def getinput(self):
-        val, ok = QtGui.QInputDialog.getInt(self, 'Input Dialog', 
-            'What is the value of N?')
+        val, ok = QtGui.QInputDialog.getInt(self, 'Input Dialog',
+                                            'What is the value of N?')
         if ok:
             print val
             queue.put(val)
         # pass
-        
+
+
+class QAsmEditDropHandler(QtCore.QObject):
+    def __init__(self, parent=None):
+        QtCore.QObject.__init__(self, parent)
+
+    def eventFilter(self, obj, event):
+        if event.type() == QtCore.QEvent.DragEnter:
+            # we need to accept this event explicitly to be able to receive QDropEvents!
+            data = event.mimeData()
+            urls = data.urls()
+            print urls[0].scheme()
+            if (urls and urls[0].scheme() == 'file'):
+                event.accept()
+                return True
+                # e.accept()
+
+        if event.type() == QtCore.QEvent.DragMove:
+            data = event.mimeData()
+            urls = data.urls()
+            if (urls and urls[0].scheme() == 'file'):
+                event.accept()
+                return True
+
+        if event.type() == QtCore.QEvent.Drop:
+            print "drop"
+            data = event.mimeData()
+            urls = data.urls()
+            if (urls and urls[0].scheme() == 'file'):
+                # for some reason, this doubles up the intro slash
+                # filepath = urls[0].toString()
+                path = urls[0].toLocalFile().toLocal8Bit().data()
+                # if os.path.isfile(path):
+                print "path", path
+                obj.setText(path)
+                return True
+        return False
 
 
 class EmittingStream(QtCore.QObject):
@@ -82,6 +120,7 @@ class ConverterThread(QtCore.QThread):
         for line in result:
             mla += line+'\n'
         self.mlaSignal.emit(mla)
+
 
 class ExecuteThread(QtCore.QThread):
     getinput = QtCore.pyqtSignal()
