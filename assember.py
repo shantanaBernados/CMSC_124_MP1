@@ -1,6 +1,7 @@
 import sys
 import vars
 from Singleton import Singleton
+from AppQueue import queue
 
 
 # asmfile = 'input.asm'
@@ -77,7 +78,7 @@ class AssemBER(object):
 			for line in mla:
 				output_file.write(line+'\n')
 
-	def execute(self, mla_code):
+	def execute(self, mla_code, parent=None):
 		memory_stack = [None for i in xrange(40)]
 		stack_register = []
 
@@ -94,7 +95,9 @@ class AssemBER(object):
 
 			print instruction, param
 			if vars.symbol[instruction] == "read":
-				val = input("Input a value for N: ")
+				# val = input("Input a value for N: ")
+				parent.getinput.emit()
+				val = queue.get()
 				memory_stack[param] = val
 			elif vars.symbol[instruction] == "mod":
 				if len(stack_register) < 2:

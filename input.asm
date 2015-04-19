@@ -9,7 +9,7 @@ pushi 0
 pop ans
 jmp stop
 even:
-pushi 1	
+pushi 1
 pop ans
 stop:
 disp ans
