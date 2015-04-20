@@ -10,9 +10,12 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
     def __init__(self, parent=None):
         super(AssemberWindow, self).__init__(parent)
         self.setupUi(self)
+        self.consoletext.setReadOnly(True)
+        self.consoletext.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse | QtCore.Qt.TextSelectableByKeyboard);
         self.convertasm.clicked.connect(self.convertasmcode)
         self.executemle.clicked.connect(self.executemlacode)
-        self.asmtextedit.installEventFilter(QAsmEditDropHandler(self))
+        self.asmtextedit.viewport().installEventFilter(
+            QAsmEditDropHandler(self, self.asmtextedit))
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
 
     def __del__(self):
@@ -55,23 +58,23 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
         if ok:
             print val
             queue.put(val)
-        # pass
 
 
 class QAsmEditDropHandler(QtCore.QObject):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, *args, **kwargs):
         QtCore.QObject.__init__(self, parent)
+        self.initcode(*args, **kwargs)
+
+    def initcode(self, asmtextedit):
+        self.asmtextedit = asmtextedit
 
     def eventFilter(self, obj, event):
         if event.type() == QtCore.QEvent.DragEnter:
-            # we need to accept this event explicitly to be able to receive QDropEvents!
             data = event.mimeData()
             urls = data.urls()
-            print urls[0].scheme()
             if (urls and urls[0].scheme() == 'file'):
                 event.accept()
                 return True
-                # e.accept()
 
         if event.type() == QtCore.QEvent.DragMove:
             data = event.mimeData()
@@ -81,16 +84,19 @@ class QAsmEditDropHandler(QtCore.QObject):
                 return True
 
         if event.type() == QtCore.QEvent.Drop:
-            print "drop"
             data = event.mimeData()
             urls = data.urls()
             if (urls and urls[0].scheme() == 'file'):
                 # for some reason, this doubles up the intro slash
                 # filepath = urls[0].toString()
                 path = urls[0].toLocalFile().toLocal8Bit().data()
-                # if os.path.isfile(path):
-                print "path", path
-                obj.setText(path)
+                if os.path.isfile(path):
+                    print path
+                    f = open(path, 'r')
+                    lines = f.read()
+                    self.asmtextedit.setText(lines)
+                else:
+                    print "Not a file"
                 return True
         return False
 
