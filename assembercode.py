@@ -11,7 +11,9 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
         super(AssemberWindow, self).__init__(parent)
         self.setupUi(self)
         self.consoletext.setReadOnly(True)
-        self.consoletext.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse | QtCore.Qt.TextSelectableByKeyboard);
+        self.consoletext.setTextInteractionFlags(
+            QtCore.Qt.TextSelectableByMouse |
+            QtCore.Qt.TextSelectableByKeyboard)
         self.convertasm.clicked.connect(self.convertasmcode)
         self.executemle.clicked.connect(self.executemlacode)
         self.asmtextedit.viewport().installEventFilter(
