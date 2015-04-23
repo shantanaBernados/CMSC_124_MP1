@@ -4,10 +4,10 @@ from Singleton import Singleton
 from AppQueue import queue
 
 
-# asmfile = 'input.asm'
+asmfile = 'input.asm'
 
-# with open(asmfile, 'r') as input_file:
-# 	codes = [i.strip() for i in input_file.readlines()]
+with open(asmfile, 'r') as input_file:
+	codes = [i.strip() for i in input_file.readlines()]
 
 @Singleton
 class AssemBER(object):
@@ -36,7 +36,7 @@ class AssemBER(object):
                             mc += '0' + arr[1]
                         else:
                             mc += arr[1]
-                            mla.append(mc)
+                        mla.append(mc)
                     elif mc in ['14', '15', '16', '17']:
                         arr[1] += ":"
                         if arr[1] in labels:
@@ -79,122 +79,134 @@ class AssemBER(object):
             for line in mla:
                 output_file.write(line+'\n')
 
+    def execute_line(self, mla_line, parent):
+        print mla_line
+        
+        instruction = mla_line[0:2]
+        param = int(mla_line[2:4])
+
+        if vars.symbol[instruction] == "read":
+            val = input("Input a value for N: ")
+            self.memory_stack[param] = val
+            # self.read(parent)
+        elif vars.symbol[instruction] == "mod":
+           self.arith_op('mod')
+        elif vars.symbol[instruction] == "add":
+           self.arith_op('add')
+        elif vars.symbol[instruction] == "sub":
+            self.arith_op('sub')
+        elif vars.symbol[instruction] == "cmp":
+           self.arith_op('cmp')
+        elif vars.symbol[instruction] == "pushi":
+            self.push('i', param)
+        elif vars.symbol[instruction] == "pushv":
+            self.push('v', param)
+        elif vars.symbol[instruction] == "pop":
+            self.pop(param)
+        elif vars.symbol[instruction] == "jmp":
+            return self.jmp('jmp', param)
+        elif vars.symbol[instruction] == "jl":
+            return self.jmp('jl', param)
+        elif vars.symbol[instruction] == "jg":
+            return self.jmp('jg', param)
+        elif vars.symbol[instruction] == "jeq":
+            return self.jmp('jeq', param)
+        elif vars.symbol[instruction] == "disp":
+            self.disp(param)
+        elif vars.symbol[instruction] == "end":
+            return
+
+        print self.stack_register
+        return 0
+
     def execute(self, mla_code, parent=None):
-        memory_stack = [None for i in xrange(40)]
-        stack_register = []
+        self.memory_stack = [None for i in xrange(40)]
+        self.stack_register = []
 
         for i in range(0, len(mla_code)):
-            memory_stack[i] = mla_code[i]
+            self.memory_stack[i] = mla_code[i]
 
         i = 0
         while i < 30:
-            if not memory_stack[i]:
+            if not self.memory_stack[i]:
                 break
+            else:
+                temp = self.execute_line(self.memory_stack[i], parent)
+                if temp:
+                    i = temp
+                i += 1
+            
+        print self.memory_stack
+        print self.stack_register
 
-            instruction = memory_stack[i][0:2]
-            param = int(memory_stack[i][2:4])
+    def read(self, parent=None):
+        parent.getinput.emit()
+        val = queue.get()
+        self.memory_stack[param] = val
 
-            print instruction, param
-            if vars.symbol[instruction] == "read":
-                # val = input("Input a value for N: ")
-                parent.getinput.emit()
-                val = queue.get()
-                memory_stack[param] = val
-            elif vars.symbol[instruction] == "mod":
-                if len(stack_register) < 2:
-                    print "Null Operand Error."
-                    return
+    def arith_op(self, op):
+        if len(self.stack_register) < 2:
+            print "Null Operand Error."
+            return
 
-                a = stack_register.pop()
-                b = stack_register.pop()
+        a = self.stack_register.pop()
+        b = self.stack_register.pop()
 
-                stack_register.append(b % a)
-            elif vars.symbol[instruction] == "add":
-                if len(stack_register) < 2:
-                    print "Null Operand Error."
-                    return
+        if op == 'mod':
+            self.stack_register.append(b % a)
+        elif op == 'add':
+            if (a+b) > 99:
+                print "Overflow Error."
+                return
 
-                a = stack_register.pop()
-                b = stack_register.pop()
+            self.stack_register.append(b + a)
+        elif op == 'sub':
+            if (b - a) < 0:
+                print "Overflow Error."
+                return
 
-                if (a+b) > 99:
-                    print "Overflow Error."
-                    return
+            self.stack_register.append(b - a)
+        else:
+            self.stack_register.append(a == b)
 
-                stack_register.append(b + a)
-            elif vars.symbol[instruction] == "sub":
-                if len(stack_register) < 2:
-                    print "Null Operand Error."
-                    return
+    def push(self, push_type, param):
+        if len(self.stack_register) == 5:
+            print "Stack Overflow Error."
+            return
 
-                a = stack_register.pop()
-                b = stack_register.pop()
+        if push_type == 'i':
+            self.stack_register.append(param)
+        else:
+            self.stack_register.append(self.memory_stack[param])
 
-                if (b - a) < 0:
-                    print "Overflow Error."
-                    return
+    def pop(self, param):
+        if not self.stack_register:
+            print "Empty Stack Error."
+            return
 
-                stack_register.append(b - a)
-            elif vars.symbol[instruction] == "cmp":
-                if len(stack_register) < 2:
-                    print "Null Operand Error."
-                    return
+        self.memory_stack[param] = self.stack_register.pop()
 
-                a = stack_register.pop()
-                b = stack_register.pop()
+    def jmp(self, jmp_type, param):
+        result = True
+        if jmp_type in ['jl', 'jg', 'jeq']:
+            if len(self.stack_register) < 2:
+                print "Null Compare Error."
+                return
 
-                stack_register.append(a == b)
-            elif vars.symbol[instruction] == "pushi":
-                if len(stack_register) == 5:
-                    print "Stack Overflow Error."
-                    return
+            if jmp_type == 'jl' and not self.stack_register[-1] < self.stack_register[-2] or \
+                jmp_type == 'jg' and not self.stack_register[-1] > self.stack_register[-2] or \
+                jmp_type == 'jeq' and not self.stack_register[-1] == self.stack_register[-2]:
+                result = False
 
-                stack_register.append(param)
-            elif vars.symbol[instruction] == "pushv":
-                if len(stack_register) == 5:
-                    print "Stack Overflow Error."
-                    return
+        if result:
+            return param - 2
 
-                stack_register.append(memory_stack[param])
-            elif vars.symbol[instruction] == "pop":
-                if not stack_register:
-                    print "Empty Stack Error."
-                    return
+    def disp(self, param):
+        print self.memory_stack[param]
 
-                memory_stack[param] = stack_register.pop()
-            elif vars.symbol[instruction] == "jmp":
-                i = param - 2
-            elif vars.symbol[instruction] == "jl":
-                if len(stack_register) < 2:
-                    print "Null Compare Error."
-                    return
-                elif stack_register[-1] < stack_register[-2]:
-                    i = param - 2
-            elif vars.symbol[instruction] == "jg":
-                if len(stack_register) < 2:
-                    print "Null Compare Error."
-                    return
-                elif stack_register[-1] > stack_register[-2]:
-                    i = param - 2
-            elif vars.symbol[instruction] == "jeq":
-                if len(stack_register) < 2:
-                    print "Null Compare Error."
-                    return
-                elif stack_register[-1] == stack_register[-2]:
-                    i = param - 2
-            elif vars.symbol[instruction] == "disp":
-                print memory_stack[param]
-            elif vars.symbol[instruction] == "end":
-                break
 
-            i += 1
 
-            print stack_register
-
-        print memory_stack
-        print stack_register
-
-# assembler = AssemBER.Instance()
-# mla_code = AssemBER.Instance().convert(codes)
-# assembler.write_mla_to_file(mla_code)
-# assembler.execute(mla_code)
+assembler = AssemBER.Instance()
+mla_code = AssemBER.Instance().convert(codes)
+assembler.write_mla_to_file(mla_code)
+assembler.execute(mla_code)
