@@ -131,8 +131,11 @@ class AssemBER(object):
                     if type(temp) is int:
                         i = temp
                 else:
-                    break
+                    if i < len(mla_code) - 1:
+                        print "at line", i + 1
+                        return i
                 i += 1
+        return False
 
     def loadcodetomem(self, mla_code):
         for i in range(0, len(mla_code)):
@@ -152,7 +155,7 @@ class AssemBER(object):
 
     def arith_op(self, op):
         if len(self.stack_register) < 2:
-            print "Null Operand Error."
+            print "Null Operand Error",
             return False
 
         a = self.stack_register.pop()
@@ -162,13 +165,13 @@ class AssemBER(object):
             self.stack_register.append(b % a)
         elif op == 'add':
             if (a+b) > 99:
-                print "Overflow Error."
+                print "Overflow Error",
                 return False
 
             self.stack_register.append(b + a)
         elif op == 'sub':
             if (b - a) < 0:
-                print "Overflow Error."
+                print "Overflow Error",
                 return False
 
             self.stack_register.append(b - a)
@@ -178,7 +181,7 @@ class AssemBER(object):
 
     def push(self, push_type, param):
         if len(self.stack_register) == 5:
-            print "Stack Overflow Error."
+            print "Stack Overflow Error",
             return False
 
         if push_type == 'i':
@@ -189,7 +192,7 @@ class AssemBER(object):
 
     def pop(self, param):
         if not self.stack_register:
-            print "Empty Stack Error."
+            print "Empty Stack Error",
             return False
 
         self.memory_stack[param] = self.stack_register.pop()
@@ -199,7 +202,7 @@ class AssemBER(object):
         result = True
         if jmp_type in ['jl', 'jg', 'jeq']:
             if len(self.stack_register) < 2:
-                print "Null Compare Error."
+                print "Null Compare Error.",
                 return False
 
             if jmp_type == 'jl' and not self.stack_register[-1] < self.stack_register[-2] or \

@@ -24,6 +24,8 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
             QAsmEditDropHandler(self, self.asmtextedit))
         self.format = QtGui.QTextBlockFormat()
         self.format.setBackground(QtCore.Qt.yellow)
+        self.errorformat = QtGui.QTextBlockFormat()
+        self.errorformat.setBackground(QtCore.Qt.red)
         self.clearformat = QtGui.QTextBlockFormat()
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
 
@@ -38,6 +40,7 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
         self.consoletext.ensureCursorVisible()
 
     def convertasmcode(self):
+        self.clearlineformat(30)
         code = self.asmtextedit.toPlainText()
         if code:
             code = unicode(code)
@@ -47,9 +50,10 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
             self.converterThread.mlaSignal.connect(self.mlecode.setText)
             self.converterThread.start()
         else:
-            print "empty"
+            print "Empty"
 
     def executemlacode(self):
+        self.clearlineformat(30)
         code = self.mlecode.toPlainText()
         if code:
             code = unicode(code)
@@ -58,15 +62,21 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
             self.executeThread = ExecuteThread(self, code)
             self.executeThread.getinput.connect(self.getinput)
             self.executeThread.lists.connect(self.showlists)
+            self.executeThread.error.connect(self.setErrorLineFormat)
             self.executeThread.start()
         else:
-            print "empty"
+            print "Empty"
 
     def getinput(self):
         val, ok = QtGui.QInputDialog.getInt(self, 'Input Dialog',
                                             'What is the value of N?')
         if ok:
             queue.put(val)
+        else:
+            print "Execution terminated"
+            if hasattr(self, 'executeThread'):
+                self.executeThread.quit()
+                self.executeThread.terminate()
 
     def showlists(self, memlist, stacklist):
         self.showmemlist(memlist)
@@ -83,6 +93,7 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
             self.stacklist.addItem(str(x) + ": " + str(item))
 
     def executestepcode(self):
+        self.clearlineformat(30)
         code = self.mlecode.toPlainText()
         if code:
             code = unicode(code)
@@ -108,6 +119,8 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
                 self.currentline = line
             self.currentline += 1
         else:
+            print "at line", self.currentline + 1
+            self.setErrorLineFormat(self.currentline)
             self.stepbtn.setEnabled(False)
         self.showmemlist(self.assember.memory_stack)
         self.showstacklist(self.assember.stack_register)
@@ -117,15 +130,26 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
         self.currentline = 0
         self.stepbtn.setEnabled(False)
         self.executestepbtn.setEnabled(True)
+        self.startover.setEnabled(False)
 
     def clearlineformat(self, endline):
         for x in range(0, endline+1):
             cursor = QtGui.QTextCursor(self.mlecode.document().findBlockByNumber(x))
             cursor.setBlockFormat(self.clearformat)
+            cursor = QtGui.QTextCursor(self.asmtextedit.document().findBlockByNumber(x))
+            cursor.setBlockFormat(self.clearformat)
 
     def setLineFormat(self, lineNumber):
         cursor = QtGui.QTextCursor(self.mlecode.document().findBlockByNumber(lineNumber))
         cursor.setBlockFormat(self.format)
+        cursor = QtGui.QTextCursor(self.asmtextedit.document().findBlockByNumber(lineNumber))
+        cursor.setBlockFormat(self.format)
+
+    def setErrorLineFormat(self, lineNumber):
+        cursor = QtGui.QTextCursor(self.mlecode.document().findBlockByNumber(lineNumber))
+        cursor.setBlockFormat(self.errorformat)
+        cursor = QtGui.QTextCursor(self.asmtextedit.document().findBlockByNumber(lineNumber))
+        cursor.setBlockFormat(self.errorformat)
 
 
 class QAsmEditDropHandler(QtCore.QObject):
@@ -205,6 +229,7 @@ class ConverterThread(QtCore.QThread):
 class ExecuteThread(QtCore.QThread):
     getinput = QtCore.pyqtSignal()
     lists = QtCore.pyqtSignal(list, list)
+    error = QtCore.pyqtSignal(int)
 
     def __init__(self, parent=None, *args, **kwargs):
         super(ExecuteThread, self).__init__(parent)
@@ -215,12 +240,10 @@ class ExecuteThread(QtCore.QThread):
 
     def run(self):
         assember = AssemBER.Instance()
-        assember.execute(self.code, self)
+        error = assember.execute(self.code, self)
+        if error:
+            self.error.emit(error)
         self.lists.emit(assember.memory_stack, assember.stack_register)
-        # mla = ""
-        # for line in result:
-        #     mla += line+'\n'
-        # self.mlaSignal.emit(mla)
 
 app = QtGui.QApplication(sys.argv)
 form = AssemberWindow()
