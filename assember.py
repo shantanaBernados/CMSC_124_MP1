@@ -89,19 +89,19 @@ class AssemBER(object):
             # self.memory_stack[param] = val
             self.read(param, parent)
         elif vars.symbol[instruction] == "mod":
-            self.arith_op('mod')
+            return self.arith_op('mod')
         elif vars.symbol[instruction] == "add":
-            self.arith_op('add')
+            return self.arith_op('add')
         elif vars.symbol[instruction] == "sub":
-            self.arith_op('sub')
+            return self.arith_op('sub')
         elif vars.symbol[instruction] == "cmp":
-            self.arith_op('cmp')
+            return self.arith_op('cmp')
         elif vars.symbol[instruction] == "pushi":
-            self.push('i', param)
+            return self.push('i', param)
         elif vars.symbol[instruction] == "pushv":
-            self.push('v', param)
+            return self.push('v', param)
         elif vars.symbol[instruction] == "pop":
-            self.pop(param)
+            return self.pop(param)
         elif vars.symbol[instruction] == "jmp":
             return self.jmp('jmp', param)
         elif vars.symbol[instruction] == "jl":
@@ -130,6 +130,8 @@ class AssemBER(object):
                 if temp:
                     if type(temp) is int:
                         i = temp
+                else:
+                    break
                 i += 1
 
     def loadcodetomem(self, mla_code):
@@ -151,7 +153,7 @@ class AssemBER(object):
     def arith_op(self, op):
         if len(self.stack_register) < 2:
             print "Null Operand Error."
-            return
+            return False
 
         a = self.stack_register.pop()
         b = self.stack_register.pop()
@@ -161,49 +163,53 @@ class AssemBER(object):
         elif op == 'add':
             if (a+b) > 99:
                 print "Overflow Error."
-                return
+                return False
 
             self.stack_register.append(b + a)
         elif op == 'sub':
             if (b - a) < 0:
                 print "Overflow Error."
-                return
+                return False
 
             self.stack_register.append(b - a)
         else:
             self.stack_register.append(a == b)
+        return True
 
     def push(self, push_type, param):
         if len(self.stack_register) == 5:
             print "Stack Overflow Error."
-            return
+            return False
 
         if push_type == 'i':
             self.stack_register.append(param)
         else:
             self.stack_register.append(self.memory_stack[param])
+        return True
 
     def pop(self, param):
         if not self.stack_register:
             print "Empty Stack Error."
-            return
+            return False
 
         self.memory_stack[param] = self.stack_register.pop()
+        return True
 
     def jmp(self, jmp_type, param):
         result = True
         if jmp_type in ['jl', 'jg', 'jeq']:
             if len(self.stack_register) < 2:
                 print "Null Compare Error."
-                return
+                return False
 
             if jmp_type == 'jl' and not self.stack_register[-1] < self.stack_register[-2] or \
-                jmp_type == 'jg' and not self.stack_register[-1] > self.stack_register[-2] or \
-                jmp_type == 'jeq' and not self.stack_register[-1] == self.stack_register[-2]:
+               jmp_type == 'jg' and not self.stack_register[-1] > self.stack_register[-2] or \
+               jmp_type == 'jeq' and not self.stack_register[-1] == self.stack_register[-2]:
                 result = False
 
         if result:
             return param - 2
+        return True
 
     def disp(self, param):
         print self.memory_stack[param]

@@ -57,6 +57,7 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
             code = code.split('\n')
             self.executeThread = ExecuteThread(self, code)
             self.executeThread.getinput.connect(self.getinput)
+            self.executeThread.lists.connect(self.showlists)
             self.executeThread.start()
         else:
             print "empty"
@@ -66,6 +67,10 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
                                             'What is the value of N?')
         if ok:
             queue.put(val)
+
+    def showlists(self, memlist, stacklist):
+        self.showmemlist(memlist)
+        self.showstacklist(stacklist)
 
     def showmemlist(self, stack):
         self.memlist.clear()
@@ -86,7 +91,6 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
             self.assember = AssemBER.Instance()
             self.assember.clear()
             self.assember.loadcodetomem(code)
-            print self.assember.memory_stack
             self.showmemlist(self.assember.memory_stack)
             self.showstacklist(self.assember.stack_register)
             self.stepbtn.setEnabled(True)
@@ -191,7 +195,7 @@ class ConverterThread(QtCore.QThread):
                 if x == len(result) - 1:
                     mla += result[x]
                 else:
-                     mla += result[x]+'\n'
+                    mla += result[x]+'\n'
             self.mlaSignal.emit(mla)
         else:
             self.mlaSignal.emit("")
@@ -200,6 +204,7 @@ class ConverterThread(QtCore.QThread):
 
 class ExecuteThread(QtCore.QThread):
     getinput = QtCore.pyqtSignal()
+    lists = QtCore.pyqtSignal(list, list)
 
     def __init__(self, parent=None, *args, **kwargs):
         super(ExecuteThread, self).__init__(parent)
@@ -211,6 +216,7 @@ class ExecuteThread(QtCore.QThread):
     def run(self):
         assember = AssemBER.Instance()
         assember.execute(self.code, self)
+        self.lists.emit(assember.memory_stack, assember.stack_register)
         # mla = ""
         # for line in result:
         #     mla += line+'\n'
