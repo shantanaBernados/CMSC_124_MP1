@@ -3,11 +3,11 @@ import vars
 from Singleton import Singleton
 from AppQueue import queue
 
+# asmfile = 'input.asm'
 
-asmfile = 'input.asm'
+# with open(asmfile, 'r') as input_file:
+# 	codes = [i.strip() for i in input_file.readlines()]
 
-with open(asmfile, 'r') as input_file:
-	codes = [i.strip() for i in input_file.readlines()]
 
 @Singleton
 class AssemBER(object):
@@ -79,24 +79,23 @@ class AssemBER(object):
             for line in mla:
                 output_file.write(line+'\n')
 
-    def execute_line(self, mla_line, parent):
-        print mla_line
-        
+    def execute_line(self, linenum, parent=None):
+        mla_line = self.memory_stack[linenum]
         instruction = mla_line[0:2]
         param = int(mla_line[2:4])
 
         if vars.symbol[instruction] == "read":
-            val = input("Input a value for N: ")
-            self.memory_stack[param] = val
-            # self.read(parent)
+            # val = input("Input a value for N: ")
+            # self.memory_stack[param] = val
+            self.read(param, parent)
         elif vars.symbol[instruction] == "mod":
-           self.arith_op('mod')
+            self.arith_op('mod')
         elif vars.symbol[instruction] == "add":
-           self.arith_op('add')
+            self.arith_op('add')
         elif vars.symbol[instruction] == "sub":
             self.arith_op('sub')
         elif vars.symbol[instruction] == "cmp":
-           self.arith_op('cmp')
+            self.arith_op('cmp')
         elif vars.symbol[instruction] == "pushi":
             self.push('i', param)
         elif vars.symbol[instruction] == "pushv":
@@ -114,33 +113,38 @@ class AssemBER(object):
         elif vars.symbol[instruction] == "disp":
             self.disp(param)
         elif vars.symbol[instruction] == "end":
-            return
+            return False
 
-        print self.stack_register
-        return 0
+        return True
 
     def execute(self, mla_code, parent=None):
-        self.memory_stack = [None for i in xrange(40)]
-        self.stack_register = []
-
-        for i in range(0, len(mla_code)):
-            self.memory_stack[i] = mla_code[i]
+        self.clear()
+        self.loadcodetomem(mla_code)
 
         i = 0
         while i < 30:
             if not self.memory_stack[i]:
                 break
             else:
-                temp = self.execute_line(self.memory_stack[i], parent)
+                temp = self.execute_line(i, parent)
                 if temp:
-                    i = temp
+                    if type(temp) is int:
+                        i = temp
                 i += 1
-            
-        print self.memory_stack
-        print self.stack_register
 
-    def read(self, parent=None):
-        parent.getinput.emit()
+    def loadcodetomem(self, mla_code):
+        for i in range(0, len(mla_code)):
+            self.memory_stack[i] = mla_code[i]
+
+    def clear(self):
+        self.memory_stack = [None for i in xrange(40)]
+        self.stack_register = []
+
+    def read(self, param, parent=None):
+        if type(parent).__name__ is "ExecuteThread":
+            parent.getinput.emit()
+        else:
+            parent.getinput()
         val = queue.get()
         self.memory_stack[param] = val
 
@@ -204,9 +208,7 @@ class AssemBER(object):
     def disp(self, param):
         print self.memory_stack[param]
 
-
-
-assembler = AssemBER.Instance()
-mla_code = AssemBER.Instance().convert(codes)
-assembler.write_mla_to_file(mla_code)
-assembler.execute(mla_code)
+# assembler = AssemBER.Instance()
+# mla_code = AssemBER.Instance().convert(codes)
+# assembler.write_mla_to_file(mla_code)
+# assembler.execute(mla_code)

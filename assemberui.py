@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'assemBer.ui'
 #
-# Created: Sun Apr 19 00:24:51 2015
-#      by: PyQt4 UI code generator 4.11.3
+# Created: Fri Apr 24 14:10:58 2015
+#      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -26,17 +26,17 @@ except AttributeError:
 class Ui_AssemBER(object):
     def setupUi(self, AssemBER):
         AssemBER.setObjectName(_fromUtf8("AssemBER"))
-        AssemBER.resize(831, 579)
+        AssemBER.resize(823, 579)
         self.centralwidget = QtGui.QWidget(AssemBER)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.consoletext = QtGui.QTextEdit(self.centralwidget)
-        self.consoletext.setGeometry(QtCore.QRect(20, 430, 791, 78))
+        self.consoletext.setGeometry(QtCore.QRect(20, 430, 781, 78))
         self.consoletext.setObjectName(_fromUtf8("consoletext"))
         self.consolelabel = QtGui.QLabel(self.centralwidget)
         self.consolelabel.setGeometry(QtCore.QRect(20, 410, 66, 17))
         self.consolelabel.setObjectName(_fromUtf8("consolelabel"))
         self.layoutWidget = QtGui.QWidget(self.centralwidget)
-        self.layoutWidget.setGeometry(QtCore.QRect(9, 10, 801, 391))
+        self.layoutWidget.setGeometry(QtCore.QRect(9, 10, 651, 391))
         self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
         self.gridLayout = QtGui.QGridLayout(self.layoutWidget)
         self.gridLayout.setMargin(0)
@@ -59,9 +59,39 @@ class Ui_AssemBER(object):
         self.mlecode = QtGui.QTextEdit(self.layoutWidget)
         self.mlecode.setObjectName(_fromUtf8("mlecode"))
         self.gridLayout.addWidget(self.mlecode, 1, 1, 1, 1)
+        self.layoutWidget1 = QtGui.QWidget(self.centralwidget)
+        self.layoutWidget1.setGeometry(QtCore.QRect(670, 10, 141, 194))
+        self.layoutWidget1.setObjectName(_fromUtf8("layoutWidget1"))
+        self.gridLayout_2 = QtGui.QGridLayout(self.layoutWidget1)
+        self.gridLayout_2.setMargin(0)
+        self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
+        self.stacklist = QtGui.QListView(self.layoutWidget1)
+        self.stacklist.setObjectName(_fromUtf8("stacklist"))
+        self.gridLayout_2.addWidget(self.stacklist, 2, 1, 1, 1)
+        self.memlabel = QtGui.QLabel(self.layoutWidget1)
+        self.memlabel.setObjectName(_fromUtf8("memlabel"))
+        self.gridLayout_2.addWidget(self.memlabel, 0, 0, 1, 1)
+        self.stacklabel = QtGui.QLabel(self.layoutWidget1)
+        self.stacklabel.setObjectName(_fromUtf8("stacklabel"))
+        self.gridLayout_2.addWidget(self.stacklabel, 0, 1, 1, 1)
+        self.memlist = QtGui.QListWidget(self.layoutWidget1)
+        self.memlist.setObjectName(_fromUtf8("memlist"))
+        self.gridLayout_2.addWidget(self.memlist, 2, 0, 1, 1)
+        self.executestepbtn = QtGui.QPushButton(self.centralwidget)
+        self.executestepbtn.setGeometry(QtCore.QRect(670, 310, 141, 27))
+        self.executestepbtn.setObjectName(_fromUtf8("executestepbtn"))
+        self.startover = QtGui.QPushButton(self.centralwidget)
+        self.startover.setEnabled(False)
+        self.startover.setGeometry(QtCore.QRect(670, 370, 141, 27))
+        self.startover.setCheckable(False)
+        self.startover.setObjectName(_fromUtf8("startover"))
+        self.stepbtn = QtGui.QPushButton(self.centralwidget)
+        self.stepbtn.setEnabled(False)
+        self.stepbtn.setGeometry(QtCore.QRect(670, 340, 141, 27))
+        self.stepbtn.setObjectName(_fromUtf8("stepbtn"))
         AssemBER.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(AssemBER)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 831, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 823, 22))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         AssemBER.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(AssemBER)
@@ -78,4 +108,9 @@ class Ui_AssemBER(object):
         self.convertasm.setText(_translate("AssemBER", "Convert", None))
         self.executemle.setText(_translate("AssemBER", "Execute", None))
         self.asmlabel.setText(_translate("AssemBER", "Assembly Code", None))
+        self.memlabel.setText(_translate("AssemBER", "Memory", None))
+        self.stacklabel.setText(_translate("AssemBER", "Stack", None))
+        self.executestepbtn.setText(_translate("AssemBER", "Execute Step by Step", None))
+        self.startover.setText(_translate("AssemBER", "Start Over", None))
+        self.stepbtn.setText(_translate("AssemBER", "Do Step", None))
 

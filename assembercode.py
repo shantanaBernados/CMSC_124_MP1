@@ -1,6 +1,7 @@
 import sys
 import os
 from PyQt4 import QtCore, QtGui
+import ExecuteThread
 import assemberui
 from assember import AssemBER
 from AppQueue import queue
@@ -16,8 +17,15 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
             QtCore.Qt.TextSelectableByKeyboard)
         self.convertasm.clicked.connect(self.convertasmcode)
         self.executemle.clicked.connect(self.executemlacode)
+        self.executestepbtn.clicked.connect(self.executestepcode)
+        self.stepbtn.clicked.connect(self.dostep)
+        self.startover.clicked.connect(self.restartexecute)
+        self.currentline = 0
         self.asmtextedit.viewport().installEventFilter(
             QAsmEditDropHandler(self, self.asmtextedit))
+        self.format = QtGui.QTextBlockFormat()
+        self.format.setBackground(QtCore.Qt.yellow)
+        self.clearformat = QtGui.QTextBlockFormat()
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
 
     def __del__(self):
@@ -58,8 +66,44 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
         val, ok = QtGui.QInputDialog.getInt(self, 'Input Dialog',
                                             'What is the value of N?')
         if ok:
-            print val
             queue.put(val)
+
+    def executestepcode(self):
+        code = self.mlecode.toPlainText()
+        if code:
+            code = unicode(code)
+            code = code.encode('utf_8')
+            code = code.split('\n')
+            self.assember = AssemBER.Instance()
+            self.assember.clear()
+            self.assember.loadcodetomem(code)
+            self.stepbtn.setEnabled(True)
+            self.startover.setEnabled(True)
+        else:
+            print "empty"
+
+    def dostep(self):
+        self.setLineFormat(self.currentline)
+        line = self.assember.execute_line(self.currentline, self)
+        if line:
+            if type(line) is int:
+                self.currentline = line
+            self.currentline += 1
+        else:
+            self.stepbtn.setEnabled(False)
+
+    def restartexecute(self):
+        endline = self.currentline
+        self.currentline = 0
+
+        for x in range(0, endline+1):
+            cursor = QtGui.QTextCursor(self.mlecode.document().findBlockByNumber(x))
+            cursor.setBlockFormat(self.clearformat)
+        self.stepbtn.setEnabled(False)
+
+    def setLineFormat(self, lineNumber):
+        cursor = QtGui.QTextCursor(self.mlecode.document().findBlockByNumber(lineNumber))
+        cursor.setBlockFormat(self.format)
 
 
 class QAsmEditDropHandler(QtCore.QObject):
@@ -119,15 +163,18 @@ class ConverterThread(QtCore.QThread):
 
     def initcode(self, code):
         self.code = code
-        print code
 
     def run(self):
         assember = AssemBER.Instance()
         result = assember.convert(self.code)
-        mla = ""
-        for line in result:
-            mla += line+'\n'
-        self.mlaSignal.emit(mla)
+        if result:
+            mla = ""
+            for line in result:
+                mla += line+'\n'
+            self.mlaSignal.emit(mla)
+        else:
+            self.mlaSignal.emit("")
+            print "Convertion failed"
 
 
 class ExecuteThread(QtCore.QThread):
@@ -139,7 +186,6 @@ class ExecuteThread(QtCore.QThread):
 
     def initcode(self, code):
         self.code = code
-        print code
 
     def run(self):
         assember = AssemBER.Instance()
