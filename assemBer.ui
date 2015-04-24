@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>823</width>
-    <height>579</height>
+    <width>832</width>
+    <height>713</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>430</y>
+      <y>570</y>
       <width>781</width>
       <height>78</height>
      </rect>
@@ -28,7 +28,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>410</y>
+      <y>550</y>
       <width>66</width>
       <height>17</height>
      </rect>
@@ -43,7 +43,7 @@
       <x>9</x>
       <y>10</y>
       <width>651</width>
-      <height>391</height>
+      <height>531</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
@@ -88,14 +88,11 @@
      <rect>
       <x>670</x>
       <y>10</y>
-      <width>141</width>
-      <height>194</height>
+      <width>154</width>
+      <height>431</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_2">
-     <item row="2" column="1">
-      <widget class="QListView" name="stacklist"/>
-     </item>
      <item row="0" column="0">
       <widget class="QLabel" name="memlabel">
        <property name="text">
@@ -113,13 +110,16 @@
      <item row="2" column="0">
       <widget class="QListWidget" name="memlist"/>
      </item>
+     <item row="2" column="1">
+      <widget class="QListWidget" name="stacklist"/>
+     </item>
     </layout>
    </widget>
    <widget class="QPushButton" name="executestepbtn">
     <property name="geometry">
      <rect>
       <x>670</x>
-      <y>310</y>
+      <y>450</y>
       <width>141</width>
       <height>27</height>
      </rect>
@@ -135,7 +135,7 @@
     <property name="geometry">
      <rect>
       <x>670</x>
-      <y>370</y>
+      <y>510</y>
       <width>141</width>
       <height>27</height>
      </rect>
@@ -154,7 +154,7 @@
     <property name="geometry">
      <rect>
       <x>670</x>
-      <y>340</y>
+      <y>480</y>
       <width>141</width>
       <height>27</height>
      </rect>
@@ -176,8 +176,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>823</width>
-     <height>22</height>
+     <width>832</width>
+     <height>21</height>
     </rect>
    </property>
   </widget>

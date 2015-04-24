@@ -1,7 +1,6 @@
 import sys
 import os
 from PyQt4 import QtCore, QtGui
-import ExecuteThread
 import assemberui
 from assember import AssemBER
 from AppQueue import queue
@@ -68,6 +67,16 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
         if ok:
             queue.put(val)
 
+    def showmemlist(self, stack):
+        self.memlist.clear()
+        for x, item in enumerate(stack):
+            self.memlist.addItem(str(x) + ": " + str(item))
+
+    def showstacklist(self, stack):
+        self.stacklist.clear()
+        for x, item in enumerate(stack):
+            self.stacklist.addItem(str(x) + ": " + str(item))
+
     def executestepcode(self):
         code = self.mlecode.toPlainText()
         if code:
@@ -77,12 +86,17 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
             self.assember = AssemBER.Instance()
             self.assember.clear()
             self.assember.loadcodetomem(code)
+            print self.assember.memory_stack
+            self.showmemlist(self.assember.memory_stack)
+            self.showstacklist(self.assember.stack_register)
             self.stepbtn.setEnabled(True)
             self.startover.setEnabled(True)
+            self.executestepbtn.setEnabled(False)
         else:
             print "empty"
 
     def dostep(self):
+        self.clearlineformat(30)
         self.setLineFormat(self.currentline)
         line = self.assember.execute_line(self.currentline, self)
         if line:
@@ -91,15 +105,19 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
             self.currentline += 1
         else:
             self.stepbtn.setEnabled(False)
+        self.showmemlist(self.assember.memory_stack)
+        self.showstacklist(self.assember.stack_register)
 
     def restartexecute(self):
-        endline = self.currentline
+        self.clearlineformat(self.currentline)
         self.currentline = 0
+        self.stepbtn.setEnabled(False)
+        self.executestepbtn.setEnabled(True)
 
+    def clearlineformat(self, endline):
         for x in range(0, endline+1):
             cursor = QtGui.QTextCursor(self.mlecode.document().findBlockByNumber(x))
             cursor.setBlockFormat(self.clearformat)
-        self.stepbtn.setEnabled(False)
 
     def setLineFormat(self, lineNumber):
         cursor = QtGui.QTextCursor(self.mlecode.document().findBlockByNumber(lineNumber))
@@ -169,8 +187,11 @@ class ConverterThread(QtCore.QThread):
         result = assember.convert(self.code)
         if result:
             mla = ""
-            for line in result:
-                mla += line+'\n'
+            for x in range(0, len(result)):
+                if x == len(result) - 1:
+                    mla += result[x]
+                else:
+                     mla += result[x]+'\n'
             self.mlaSignal.emit(mla)
         else:
             self.mlaSignal.emit("")
