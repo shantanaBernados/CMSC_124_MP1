@@ -48,7 +48,7 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
             code = code.encode('utf_8')
             code = code.split('\n')
             self.converterThread = ConverterThread(self, code)
-            self.converterThread.mlaSignal.connect(self.mlecode.setText)
+            self.converterThread.mlaSignal.connect(self.savemlafile)
             self.converterThread.error.connect(self.setErrorConvFormat)
             self.converterThread.start()
         else:
@@ -69,6 +69,15 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
             self.executeThread.start()
         else:
             print "Empty"
+
+    def savemlafile(self, text):
+        self.mlecode.setText(text)
+        if text:
+            filename = QtGui.QFileDialog.getSaveFileName(self, "Save file", "", ".mla")
+            if filename:
+                fname = open(filename, 'w+')
+                fname.write(text)
+                fname.close() 
 
     def getinput(self):
         val, ok = QtGui.QInputDialog.getInt(self, 'Input Dialog',
