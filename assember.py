@@ -21,7 +21,7 @@ class AssemBER(object):
             if instruction.endswith(':'):
                 labels[instruction] = str(i + 1)
 
-        for code in codes:
+        for x, code in enumerate(codes):
             arr = code.split(' ')
             instruction = arr[0]
 
@@ -40,13 +40,13 @@ class AssemBER(object):
                     elif mc in ['14', '15', '16', '17']:
                         arr[1] += ":"
                         if arr[1] in labels:
-                            if int(labels[arr[1]]) < 10:
-                                labels[arr[1]] = '0' + labels[arr[1]]
+                            # if int(labels[arr[1]]) < 10:
+                            #     labels[arr[1]] = labels[arr[1]]
 
                             mla.append(mc + str(labels[arr[1]]))
                         else:
                             print "Label not found"
-                            return
+                            return x, True
                     else:
                         address = self.append_variable_to_stack(arr[1])
                         if not address:
@@ -62,9 +62,9 @@ class AssemBER(object):
                 mla.append('06' + labels[instruction])
             else:
                 print instruction + " is not supported."
-                return
+                return x, True
 
-        return mla
+        return mla, False
 
     def append_variable_to_stack(self, variable):
         for i in xrange(30, 39):
@@ -87,7 +87,7 @@ class AssemBER(object):
         if vars.symbol[instruction] == "read":
             # val = input("Input a value for N: ")
             # self.memory_stack[param] = val
-            self.read(param, parent)
+            return self.read(param, parent)
         elif vars.symbol[instruction] == "mod":
             return self.arith_op('mod')
         elif vars.symbol[instruction] == "add":
@@ -113,7 +113,7 @@ class AssemBER(object):
         elif vars.symbol[instruction] == "disp":
             self.disp(param)
         elif vars.symbol[instruction] == "end":
-            return False
+            return None
 
         return True
 
@@ -151,7 +151,12 @@ class AssemBER(object):
         else:
             parent.getinput()
         val = queue.get()
-        self.memory_stack[param] = val
+        if val is False:
+            print "Execution terminated",
+            return False
+        else:
+            self.memory_stack[param] = val
+            return True
 
     def arith_op(self, op):
         if len(self.stack_register) < 2:

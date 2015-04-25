@@ -41,6 +41,7 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
 
     def convertasmcode(self):
         self.clearlineformat(30)
+        self.consoletext.setText("")
         code = self.asmtextedit.toPlainText()
         if code:
             code = unicode(code)
@@ -48,12 +49,14 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
             code = code.split('\n')
             self.converterThread = ConverterThread(self, code)
             self.converterThread.mlaSignal.connect(self.mlecode.setText)
+            self.converterThread.error.connect(self.setErrorConvFormat)
             self.converterThread.start()
         else:
             print "Empty"
 
     def executemlacode(self):
         self.clearlineformat(30)
+        self.consoletext.setText("")
         code = self.mlecode.toPlainText()
         if code:
             code = unicode(code)
@@ -73,10 +76,8 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
         if ok:
             queue.put(val)
         else:
-            print "Execution terminated"
-            if hasattr(self, 'executeThread'):
-                self.executeThread.quit()
-                self.executeThread.terminate()
+            queue.put(False)
+
 
     def showlists(self, memlist, stacklist):
         self.showmemlist(memlist)
@@ -118,6 +119,8 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
             if type(line) is int:
                 self.currentline = line
             self.currentline += 1
+        elif line is None:
+            self.stepbtn.setEnabled(False)
         else:
             print "at line", self.currentline + 1
             self.setErrorLineFormat(self.currentline)
@@ -144,6 +147,10 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
         cursor.setBlockFormat(self.format)
         cursor = QtGui.QTextCursor(self.asmtextedit.document().findBlockByNumber(lineNumber))
         cursor.setBlockFormat(self.format)
+
+    def setErrorConvFormat(self, lineNumber):
+        cursor = QtGui.QTextCursor(self.asmtextedit.document().findBlockByNumber(lineNumber))
+        cursor.setBlockFormat(self.errorformat)
 
     def setErrorLineFormat(self, lineNumber):
         cursor = QtGui.QTextCursor(self.mlecode.document().findBlockByNumber(lineNumber))
@@ -183,7 +190,7 @@ class QAsmEditDropHandler(QtCore.QObject):
                 # filepath = urls[0].toString()
                 path = urls[0].toLocalFile().toLocal8Bit().data()
                 if os.path.isfile(path):
-                    print path
+                    print "Loaded file from", path
                     f = open(path, 'r')
                     lines = f.read()
                     self.asmtextedit.setText(lines)
@@ -202,6 +209,7 @@ class EmittingStream(QtCore.QObject):
 
 class ConverterThread(QtCore.QThread):
     mlaSignal = QtCore.pyqtSignal(QtCore.QString)
+    error = QtCore.pyqtSignal(int)
 
     def __init__(self, parent=None, *args, **kwargs):
         super(ConverterThread, self).__init__(parent)
@@ -212,8 +220,12 @@ class ConverterThread(QtCore.QThread):
 
     def run(self):
         assember = AssemBER.Instance()
-        result = assember.convert(self.code)
-        if result:
+        result, error = assember.convert(self.code)
+        if error:
+            self.mlaSignal.emit("")
+            self.error.emit(result)
+            print "Convertion failed at line", result+1
+        else:
             mla = ""
             for x in range(0, len(result)):
                 if x == len(result) - 1:
@@ -221,9 +233,6 @@ class ConverterThread(QtCore.QThread):
                 else:
                     mla += result[x]+'\n'
             self.mlaSignal.emit(mla)
-        else:
-            self.mlaSignal.emit("")
-            print "Convertion failed"
 
 
 class ExecuteThread(QtCore.QThread):
