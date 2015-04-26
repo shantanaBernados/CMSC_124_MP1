@@ -259,7 +259,7 @@ class ExecuteThread(QtCore.QThread):
     def run(self):
         assember = AssemBER.Instance()
         error = assember.execute(self.code, self)
-        if error:
+        if error or error == 0:
             self.error.emit(error)
         self.lists.emit(assember.memory_stack, assember.stack_register)
 

@@ -28,32 +28,37 @@ class AssemBER(object):
             if instruction in vars.symbol_reversed:
                 mc = vars.symbol_reversed[instruction]
                 if mc[0] == '0':
-                    mc += '00'
-                    mla.append(mc)
-                else:
-                    if mc == '11':
-                        if int(arr[1]) < 10:
-                            mc += '0' + arr[1]
-                        else:
-                            mc += arr[1]
-                        mla.append(mc)
-                    elif mc in ['14', '15', '16', '17']:
-                        arr[1] += ":"
-                        if arr[1] in labels:
-                            # if int(labels[arr[1]]) < 10:
-                            #     labels[arr[1]] = labels[arr[1]]
-
-                            mla.append(mc + str(labels[arr[1]]))
-                        else:
-                            print "Label not found"
-                            return x, True
+                    if len(arr) == 2 and not arr[1] == "":
+                        print instruction, "does not take any parameters"
+                        return x, True
                     else:
-                        address = self.append_variable_to_stack(arr[1])
-                        if not address:
-                            print "Memory full."
-                        else:
-                            mc += str(address)
+                        mc += '00'
+                        mla.append(mc)
+                else:
+                    if not len(arr) == 2 or arr[1] == "":
+                        print instruction, "expects parameters, none given"
+                        return x, True
+                    else:
+                        if mc == '11':
+                            if int(arr[1]) < 10:
+                                mc += '0' + arr[1]
+                            else:
+                                mc += arr[1]
                             mla.append(mc)
+                        elif mc in ['14', '15', '16', '17']:
+                            arr[1] += ":"
+                            if arr[1] in labels:
+                                mla.append(mc + str(labels[arr[1]]))
+                            else:
+                                print "Label not found"
+                                return x, True
+                        else:
+                            address = self.append_variable_to_stack(arr[1])
+                            if not address:
+                                print "Memory full."
+                            else:
+                                mc += str(address)
+                                mla.append(mc)
 
             elif instruction.endswith(':'):
                 if int(labels[instruction]) < 10:
@@ -84,38 +89,42 @@ class AssemBER(object):
         instruction = mla_line[0:2]
         param = int(mla_line[2:4])
 
-        if vars.symbol[instruction] == "read":
-            # val = input("Input a value for N: ")
-            # self.memory_stack[param] = val
-            return self.read(param, parent)
-        elif vars.symbol[instruction] == "mod":
-            return self.arith_op('mod')
-        elif vars.symbol[instruction] == "add":
-            return self.arith_op('add')
-        elif vars.symbol[instruction] == "sub":
-            return self.arith_op('sub')
-        elif vars.symbol[instruction] == "cmp":
-            return self.arith_op('cmp')
-        elif vars.symbol[instruction] == "pushi":
-            return self.push('i', param)
-        elif vars.symbol[instruction] == "pushv":
-            return self.push('v', param)
-        elif vars.symbol[instruction] == "pop":
-            return self.pop(param)
-        elif vars.symbol[instruction] == "jmp":
-            return self.jmp('jmp', param)
-        elif vars.symbol[instruction] == "jl":
-            return self.jmp('jl', param)
-        elif vars.symbol[instruction] == "jg":
-            return self.jmp('jg', param)
-        elif vars.symbol[instruction] == "jeq":
-            return self.jmp('jeq', param)
-        elif vars.symbol[instruction] == "disp":
-            self.disp(param)
-        elif vars.symbol[instruction] == "end":
-            return None
+        if instruction in vars.symbol:
+            if vars.symbol[instruction] == "read":
+                # val = input("Input a value for N: ")
+                # self.memory_stack[param] = val
+                return self.read(param, parent)
+            elif vars.symbol[instruction] == "mod":
+                return self.arith_op('mod')
+            elif vars.symbol[instruction] == "add":
+                return self.arith_op('add')
+            elif vars.symbol[instruction] == "sub":
+                return self.arith_op('sub')
+            elif vars.symbol[instruction] == "cmp":
+                return self.arith_op('cmp')
+            elif vars.symbol[instruction] == "pushi":
+                return self.push('i', param)
+            elif vars.symbol[instruction] == "pushv":
+                return self.push('v', param)
+            elif vars.symbol[instruction] == "pop":
+                return self.pop(param)
+            elif vars.symbol[instruction] == "jmp":
+                return self.jmp('jmp', param)
+            elif vars.symbol[instruction] == "jl":
+                return self.jmp('jl', param)
+            elif vars.symbol[instruction] == "jg":
+                return self.jmp('jg', param)
+            elif vars.symbol[instruction] == "jeq":
+                return self.jmp('jeq', param)
+            elif vars.symbol[instruction] == "disp":
+                self.disp(param)
+            elif vars.symbol[instruction] == "end":
+                return None
 
-        return True
+            return True
+        else:
+            print "Instruction not supported",
+            return False
 
     def execute(self, mla_code, parent=None):
         self.clear()
