@@ -17,7 +17,7 @@ class AssemBER(object):
         labels = {}
 
         if codes[0] != 'begin':
-            print "Error. Program should start with a 'begin' instruction"
+            print "Error. Program should start with a 'begin' instruction",
             return 0, True
 
         for i in xrange(0, len(codes)):
@@ -31,14 +31,14 @@ class AssemBER(object):
             instruction = arr[0]
 
             if instruction == 'begin' and x != 0:
-                print "Misplaced 'begin' instruction"
+                print "Misplaced 'begin' instruction",
                 return x, True
 
             if instruction in vars.symbol_reversed:
                 mc = vars.symbol_reversed[instruction]
                 if mc[0] == '0':
                     if len(arr) == 2 and not arr[1] == "":
-                        print instruction, "does not take any parameters"
+                        print instruction, "does not take any parameters",
                         return x, True
                     else:
                         mc += '00'
@@ -47,7 +47,7 @@ class AssemBER(object):
                             break
                 else:
                     if not len(arr) == 2 or arr[1] == "":
-                        print instruction, "expects parameters, none given"
+                        print instruction, "expects parameters, none given",
                         return x, True
                     else:
                         if mc == '11':
@@ -61,12 +61,12 @@ class AssemBER(object):
                             if arr[1] in labels:
                                 mla.append(mc + str(labels[arr[1]]))
                             else:
-                                print "Label not found"
+                                print "Label not found",
                                 return x, True
                         else:
                             address = self.append_variable_to_stack(arr[1])
                             if not address:
-                                print "Memory full."
+                                print "Memory full.",
                             else:
                                 mc += str(address)
                                 mla.append(mc)
@@ -77,7 +77,7 @@ class AssemBER(object):
 
                 mla.append('06' + labels[instruction])
             else:
-                print instruction + " is not supported."
+                print instruction + " is not supported.",
                 return x, True
 
         return mla, False
@@ -187,7 +187,7 @@ class AssemBER(object):
             return False
 
         if self.stack_register[-1] == None or self.stack_register[-2] == None:
-            print "Unsupported operand type: 'NoneType'"
+            print "Unsupported operand type: 'NoneType'",
             return False
 
         a = self.stack_register.pop()
