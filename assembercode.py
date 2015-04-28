@@ -40,6 +40,9 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
         self.consoletext.ensureCursorVisible()
 
     def convertasmcode(self):
+        self.memlist.clear()
+        self.stacklist.clear()
+        self.restartexecute()
         self.clearlineformat(30)
         self.consoletext.setText("")
         code = self.asmtextedit.toPlainText()
@@ -55,6 +58,8 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
             print "Empty"
 
     def executemlacode(self):
+        self.memlist.clear()
+        self.stacklist.clear()
         self.clearlineformat(30)
         self.consoletext.setText("")
         code = self.mlecode.toPlainText()
@@ -103,6 +108,7 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
             self.stacklist.addItem(str(x) + ": " + str(item))
 
     def executestepcode(self):
+        self.consoletext.setText("")
         self.clearlineformat(30)
         code = self.mlecode.toPlainText()
         if code:
@@ -138,6 +144,7 @@ class AssemberWindow(QtGui.QMainWindow, assemberui.Ui_AssemBER):
         self.showstacklist(self.assember.stack_register)
 
     def restartexecute(self):
+        self.consoletext.setText('')
         self.clearlineformat(self.currentline)
         self.currentline = 0
         self.stepbtn.setEnabled(False)
@@ -258,9 +265,9 @@ class ExecuteThread(QtCore.QThread):
 
     def run(self):
         assember = AssemBER.Instance()
-        error = assember.execute(self.code, self)
-        if error or error == 0:
-            self.error.emit(error)
+        error, line = assember.execute(self.code, self)
+        if error:
+            self.error.emit(line)
         self.lists.emit(assember.memory_stack, assember.stack_register)
 
 app = QtGui.QApplication(sys.argv)

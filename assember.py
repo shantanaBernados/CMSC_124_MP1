@@ -146,9 +146,9 @@ class AssemBER(object):
                 else:
                     if i < len(mla_code) - 1:
                         print "at line", i + 1
-                        return i
+                        return True, i
                 i += 1
-        return False
+        return False, None
 
     def loadcodetomem(self, mla_code):
         for i in range(0, len(mla_code)):
