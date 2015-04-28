@@ -12,6 +12,7 @@ from AppQueue import queue
 @Singleton
 class AssemBER(object):
     def convert(self, codes):
+        self.clear_vars_mem_stack()
         mla = []
         labels = {}
 
@@ -70,6 +71,9 @@ class AssemBER(object):
                 return x, True
 
         return mla, False
+
+    def clear_vars_mem_stack(self):
+        vars.memory_stack = [None for i in xrange(40)]
 
     def append_variable_to_stack(self, variable):
         for i in xrange(30, 39):
