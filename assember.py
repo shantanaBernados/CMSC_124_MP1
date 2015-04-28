@@ -186,7 +186,7 @@ class AssemBER(object):
             print "Null Operand Error",
             return False
 
-        if not self.stack_register[-1] or not self.stack_register[-2]:
+        if self.stack_register[-1] == None or self.stack_register[-2] == None:
             print "Unsupported operand type: 'NoneType'"
             return False
 
