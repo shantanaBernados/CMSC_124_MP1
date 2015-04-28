@@ -16,6 +16,10 @@ class AssemBER(object):
         mla = []
         labels = {}
 
+        if codes[0] != 'begin':
+            print "Error. Program should start with a 'begin' instruction"
+            return 0, True
+
         for i in xrange(0, len(codes)):
             instruction = codes[i]
 
@@ -26,6 +30,10 @@ class AssemBER(object):
             arr = code.split(' ')
             instruction = arr[0]
 
+            if instruction == 'begin' and x != 0:
+                print "Misplaced 'begin' instruction"
+                return x, True
+
             if instruction in vars.symbol_reversed:
                 mc = vars.symbol_reversed[instruction]
                 if mc[0] == '0':
@@ -35,6 +43,8 @@ class AssemBER(object):
                     else:
                         mc += '00'
                         mla.append(mc)
+                        if mc == '0100':
+                            break
                 else:
                     if not len(arr) == 2 or arr[1] == "":
                         print instruction, "expects parameters, none given"
@@ -174,6 +184,10 @@ class AssemBER(object):
     def arith_op(self, op):
         if len(self.stack_register) < 2:
             print "Null Operand Error",
+            return False
+
+        if not self.stack_register[-1] or not self.stack_register[-2]:
+            print "Unsupported operand type: 'NoneType'"
             return False
 
         a = self.stack_register.pop()
